@@ -87,6 +87,7 @@ jobs:
         if: ${{ inputs.apply == true && inputs.auto_commit == false }}
         run: |
           echo "dod_drop=false" >> "$GITHUB_OUTPUT"
+          echo "changed_files=none" >> "$GITHUB_OUTPUT"
           echo "## Sync Result Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Tenant: \`${{ inputs.tenant_id }}\`" >> "$GITHUB_STEP_SUMMARY"
@@ -97,6 +98,12 @@ jobs:
             echo "No file changes detected." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+          mapfile -t CHANGED_FILES < <(git diff --name-only | head -n 20)
+          {
+            echo "changed_files<<EOF"
+            printf '%s\n' "${CHANGED_FILES[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
           echo "### Changed Files" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           git status --short | sed 's/^/- /' >> "$GITHUB_STEP_SUMMARY"
@@ -138,6 +145,17 @@ jobs:
             const label = 'sync-dod-drop';
             const title = `[DoD Drop][${tenant}] Manual sync requires article review`;
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const changedRaw = `${{ steps.diff_summary.outputs.changed_files }}`.trim();
+            const changedFiles = changedRaw && changedRaw !== 'none'
+              ? changedRaw.split('\n').filter(Boolean)
+              : [];
+            const changedSection = changedFiles.length > 0
+              ? [
+                  '',
+                  '### Changed Files (up to 20)',
+                  ...changedFiles.map((f) => `- \`${f}\``),
+                ].join('\n')
+              : '';
 
             // Ensure label exists
             try {
@@ -164,6 +182,7 @@ jobs:
               `- Run: ${runUrl}`,
               `- Actor: @${context.actor}`,
               `- Commit: \`${context.sha.slice(0, 12)}\``,
+              changedSection,
               '',
               'Please review changed articles and restore DoD 10/10 before rerun.',
             ].join('\n');
