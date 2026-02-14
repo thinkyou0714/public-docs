@@ -4,7 +4,7 @@
  * Sync workflow execution metadata を監査ログへ追記する。
  *
  * Usage:
- *   node scripts/append-sync-audit.mjs --file docs/sync-audit-log.md --tenant shared --mode apply --actor user --run-url https://... --sha abc123 --dry-run
+ *   node scripts/append-sync-audit.mjs --file docs/sync-audit-log.md --tenant shared --mode apply --actor user --run-id 123 --run-url https://... --sha abc123 --dry-run
  */
 
 import fs from 'fs';
@@ -26,6 +26,7 @@ const targetFile = path.resolve(ROOT_DIR, getArgValue('--file', 'docs/sync-audit
 const tenant = getArgValue('--tenant', 'shared');
 const mode = getArgValue('--mode', 'apply');
 const actor = getArgValue('--actor', 'unknown');
+const runId = getArgValue('--run-id', '');
 const runUrl = getArgValue('--run-url', '');
 const sha = getArgValue('--sha', '').slice(0, 12);
 const dryRun = process.argv.includes('--dry-run');
@@ -38,8 +39,8 @@ const header = [
   '',
   'Automated append-only audit trail for sanitized sync workflow runs.',
   '',
-  '| Date | Time (UTC) | Tenant | Mode | Actor | SHA | Run |',
-  '|---|---|---|---|---|---|---|',
+  '| Date | Time (UTC) | Tenant | Mode | Actor | Run ID | SHA | Run |',
+  '|---|---|---|---|---|---|---|---|',
 ].join('\n');
 
 if (!fs.existsSync(path.dirname(targetFile))) {
@@ -51,7 +52,7 @@ if (!fs.existsSync(targetFile)) {
 }
 
 const runCell = runUrl ? `[link](${runUrl})` : '-';
-const line = `| ${date} | ${time} | ${tenant} | ${mode} | ${actor} | ${sha || '-'} | ${runCell} |`;
+const line = `| ${date} | ${time} | ${tenant} | ${mode} | ${actor} | ${runId || '-'} | ${sha || '-'} | ${runCell} |`;
 
 if (dryRun) {
   console.log('[DRY-RUN] append line:');
@@ -60,6 +61,10 @@ if (dryRun) {
 }
 
 const current = fs.readFileSync(targetFile, 'utf-8');
+if (runId && current.includes(`| ${runId} |`)) {
+  console.log(`Skip append: run_id already logged (${runId})`);
+  process.exit(0);
+}
 const next = current.endsWith('\n') ? `${current}${line}\n` : `${current}\n${line}\n`;
 fs.writeFileSync(targetFile, next, 'utf-8');
 

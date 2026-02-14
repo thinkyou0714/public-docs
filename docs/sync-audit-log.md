@@ -2,5 +2,5 @@
 
 Automated append-only audit trail for sanitized sync workflow runs.
 
-| Date | Time (UTC) | Tenant | Mode | Actor | SHA | Run |
-|---|---|---|---|---|---|---|
+| Date | Time (UTC) | Tenant | Mode | Actor | Run ID | SHA | Run |
+|---|---|---|---|---|---|---|---|

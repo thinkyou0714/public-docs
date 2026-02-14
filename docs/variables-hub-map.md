@@ -43,6 +43,8 @@ execution separation for `apply=true`.
 |---|---|---|
 | Sync apply run | `docs/sync-audit-log.md` | `sync-sanitized.yml` with `apply=true` |
 
+Audit writes are idempotent by `run_id` (duplicate append is skipped).
+
 ## Change Rule
 
 1. Add/update variable name here first.
