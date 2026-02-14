@@ -105,11 +105,19 @@ for (const file of files) {
   const raw = fs.readFileSync(file, 'utf-8');
   const content = normalizeContent(raw);
   const fm = parseFrontmatter(content);
-  const passCount = DOD_CHECKS.filter((fn) => fn(fm, content)).length;
+  const failedIds = [];
+  let passCount = 0;
+  DOD_CHECKS.forEach((fn, idx) => {
+    if (fn(fm, content)) {
+      passCount++;
+    } else {
+      failedIds.push(idx + 1);
+    }
+  });
   const templateId = fm.template_id || '(no ID)';
   const status = passCount === 10 ? 'maintained (10/10)' : 'needs review';
   if (passCount === 10) fullPass++;
-  records.push({ templateId, file: path.normalize(file), passCount });
+  records.push({ templateId, file: path.normalize(file), passCount, failedIds });
   if (!worstOnly) {
     console.log(`| ${templateId} | ${path.normalize(file)} | ${passCount}/10 | ${status} |`);
   }
@@ -131,7 +139,7 @@ if (emitWorst > 0) {
     .sort((a, b) => a.passCount - b.passCount)
     .slice(0, emitWorst);
   for (const r of worst) {
-    console.log(`${r.templateId}|${r.passCount}/10|${r.file}`);
+    console.log(`${r.templateId}|${r.passCount}/10|${r.file}|${r.failedIds.join(',') || '-'}`);
   }
 }
 

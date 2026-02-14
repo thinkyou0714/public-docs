@@ -213,8 +213,11 @@ jobs:
                   '',
                   '### DoD Worst (lowest 3)',
                   ...worstRows.map((line) => {
-                    const [id, score, file] = line.split('|');
-                    return `- \`${id}\` : **${score}** (${file})`;
+                    const [id, score, file, failed] = line.split('|');
+                    const failedPart = failed && failed !== '-'
+                      ? `, failed checks: \`${failed}\``
+                      : '';
+                    return `- \`${id}\` : **${score}** (${file}${failedPart})`;
                   }),
                 ].join('\n')
               : '';
