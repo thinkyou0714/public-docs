@@ -1,0 +1,76 @@
+---
+template_id: "GUIDE-001"
+title: "記事の書き方ガイド"
+category: "Ops"
+difficulty: "beginner"
+duration_bucket: "short"
+prerequisites: []
+integrations: []
+version: "1.0.0"
+last_verified_yyyy_mm: "2026-02"
+visibility: "public"
+tags:
+  - "ガイド"
+  - "運用"
+description: "テンプレ実装ガイド記事の書き方と公開までの手順"
+---
+
+## 概要
+
+テンプレ実装ガイド記事を新規作成し、DoDチェックを経て公開するまでの手順。
+
+## 対象ユーザー
+
+- テンプレ実装ガイドの執筆者
+- レビュワー
+
+## 前提条件
+
+- 本リポジトリのクローンが完了していること
+- `docs/article-spec.md` の記事規格を一読していること
+- `docs/dod-checklist.md` のDoD 10項目を把握していること
+
+## 手順
+
+### Step 1: テンプレートをコピー
+
+`obsidian-templates/TEMPLATE-GUIDE.md` を元に、穴埋めで記事を作成する。
+
+### Step 2: template_id を採番
+
+採番規則に従い、一意のIDを付与する:
+
+| セクション | フォーマット | 例 |
+|-----------|------------|-----|
+| templates | `TMPL-{CATEGORY}-{NNN}` | TMPL-LINE-002 |
+| troubleshooting | `TS-{CATEGORY}-{NNN}` | TS-OBS-001 |
+| guides | `GUIDE-{NNN}` | GUIDE-002 |
+| changelog | `CL-{YYYY-MM}` | CL-2026-03 |
+
+### Step 3: 全セクションを埋める
+
+B主軸の14セクションをすべて記述する。
+
+### Step 4: 機密チェック
+
+```bash
+npm run check-secrets
+```
+
+### Step 5: DoD 10項目チェック
+
+`docs/dod-checklist.md` に沿って自己チェック。
+
+### Step 6: コミット＆デプロイ
+
+```bash
+git add content/{section}/{slug}.mdx
+git commit -m "Add {template_id}: {title}"
+git push origin main
+```
+
+## 変更履歴
+
+| 日付 | 変更内容 | 関連ID |
+|------|----------|--------|
+| 2026-02 | 初版作成 | GUIDE-001 |
