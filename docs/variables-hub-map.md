@@ -37,6 +37,12 @@ to public-docs workflows without exposing secrets.
 Set required reviewers for each environment in repository settings to enforce
 execution separation for `apply=true`.
 
+## Audit Mapping
+
+| Event | Log Target | Trigger |
+|---|---|---|
+| Sync apply run | `docs/sync-audit-log.md` | `sync-sanitized.yml` with `apply=true` |
+
 ## Change Rule
 
 1. Add/update variable name here first.

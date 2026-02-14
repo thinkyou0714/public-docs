@@ -63,6 +63,18 @@ jobs:
         if: ${{ inputs.apply == true }}
         run: npm run build
 
+      - name: Append sync audit log
+        if: ${{ inputs.apply == true }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          node scripts/append-sync-audit.mjs \
+            --file docs/sync-audit-log.md \
+            --tenant "${{ inputs.tenant_id }}" \
+            --mode "apply" \
+            --actor "${{ github.actor }}" \
+            --run-url "$RUN_URL" \
+            --sha "${{ github.sha }}"
+
       - name: Commit changes
         if: ${{ inputs.apply == true && inputs.auto_commit == true }}
         run: |
@@ -72,6 +84,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add content/**/*.mdx public/sitemap.xml
-          git commit -m "chore: sync sanitized snapshots via workflow"
+          git add content/**/*.mdx public/sitemap.xml docs/sync-audit-log.md
+          git commit -m "chore: sync sanitized snapshots via workflow" -m "tenant=${{ inputs.tenant_id }}"
           git push
