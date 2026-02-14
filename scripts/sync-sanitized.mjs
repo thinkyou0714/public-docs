@@ -159,15 +159,21 @@ function upsertSyncBlock(body, syncBlock) {
 
 function getAllMdxByTemplateId() {
   const map = new Map();
+  const duplicates = new Map();
   const mdxFiles = getFilesRecursive(CONTENT_DIR, /\.mdx?$/);
   for (const filePath of mdxFiles) {
     const raw = fs.readFileSync(filePath, 'utf-8');
     const { frontmatter } = parseFrontmatter(raw);
     if (frontmatter.template_id) {
+      if (map.has(frontmatter.template_id)) {
+        const list = duplicates.get(frontmatter.template_id) ?? [map.get(frontmatter.template_id)];
+        list.push(filePath);
+        duplicates.set(frontmatter.template_id, list);
+      }
       map.set(frontmatter.template_id, filePath);
     }
   }
-  return map;
+  return { map, duplicates };
 }
 
 function main() {
@@ -180,13 +186,26 @@ function main() {
   }
 
   const sanitizedFiles = getFilesRecursive(SANITIZED_DIR, /-sanitized\.md$/i);
-  const mdxById = getAllMdxByTemplateId();
+  const { map: mdxById, duplicates: mdxDuplicates } = getAllMdxByTemplateId();
   let updated = 0;
   let skipped = 0;
+  let syncError = false;
 
   console.log(`Mode: ${APPLY ? 'APPLY' : 'DRY-RUN'}`);
   console.log(`Sanitized files: ${sanitizedFiles.length}`);
+  console.log(`Sanitized dir: ${SANITIZED_DIR}`);
 
+  if (mdxDuplicates.size > 0) {
+    syncError = true;
+    console.error('[ERROR] duplicate template_id detected in MDX content:');
+    for (const [id, files] of mdxDuplicates.entries()) {
+      const rel = files.map((f) => path.relative(ROOT_DIR, f)).join(', ');
+      console.error(`  - ${id}: ${rel}`);
+    }
+  }
+
+  const sanitizedById = new Map();
+  const sanitizedDuplicates = new Map();
   for (const sf of sanitizedFiles) {
     const raw = fs.readFileSync(sf, 'utf-8');
     const data = parseSanitized(raw);
@@ -195,10 +214,33 @@ function main() {
       skipped++;
       continue;
     }
+    if (sanitizedById.has(data.templateId)) {
+      const list = sanitizedDuplicates.get(data.templateId) ?? [sanitizedById.get(data.templateId).sourceFile];
+      list.push(sf);
+      sanitizedDuplicates.set(data.templateId, list);
+      continue;
+    }
+    sanitizedById.set(data.templateId, { ...data, sourceFile: sf });
+  }
 
+  if (sanitizedDuplicates.size > 0) {
+    syncError = true;
+    console.error('[ERROR] duplicate template_id detected in sanitized files:');
+    for (const [id, files] of sanitizedDuplicates.entries()) {
+      const rel = files.map((f) => path.relative(SANITIZED_DIR, f)).join(', ');
+      console.error(`  - ${id}: ${rel}`);
+    }
+  }
+
+  if (syncError) {
+    console.error('Sync aborted: resolve duplicate template_id before retrying.');
+    process.exit(1);
+  }
+
+  for (const [templateId, data] of sanitizedById.entries()) {
     const target = mdxById.get(data.templateId);
     if (!target) {
-      console.log(`[SKIP] ${path.basename(sf)}: no target MDX for ${data.templateId}`);
+      console.log(`[SKIP] ${path.basename(data.sourceFile)}: no target MDX for ${templateId}`);
       skipped++;
       continue;
     }
@@ -221,7 +263,7 @@ function main() {
     }
 
     updated++;
-    console.log(`[UPDATE] ${data.templateId} -> ${path.relative(ROOT_DIR, target)}`);
+    console.log(`[UPDATE] ${templateId} -> ${path.relative(ROOT_DIR, target)}`);
     if (APPLY) fs.writeFileSync(target, next, 'utf-8');
   }
 

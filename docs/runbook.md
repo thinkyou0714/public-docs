@@ -65,6 +65,8 @@ npm run sync-sanitized
 # 3. 問題なければ apply
 node scripts/sync-sanitized.mjs --apply
 
+# NOTE: template_id が重複していると同期は fail する（誤上書き防止）
+
 # 4. 必要に応じて MDX ファイルを微修正
 
 # 5. 機密チェック
