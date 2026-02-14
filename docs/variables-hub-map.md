@@ -45,6 +45,11 @@ execution separation for `apply=true`.
 
 Audit writes are idempotent by `run_id` (duplicate append is skipped).
 
+DoD gate option:
+
+- `fail_on_dod_drop=true` in workflow_dispatch fails the run when any changed
+  article falls below DoD 10/10.
+
 ## Change Rule
 
 1. Add/update variable name here first.

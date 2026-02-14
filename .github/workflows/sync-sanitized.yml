@@ -22,6 +22,11 @@ on:
         required: true
         default: false
         type: boolean
+      fail_on_dod_drop:
+        description: "Fail run if changed article DoD is not 10/10"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -105,7 +110,17 @@ jobs:
           if [ "${#CHANGED_MDX[@]}" -eq 0 ]; then
             echo "No changed article files." >> "$GITHUB_STEP_SUMMARY"
           else
-            node scripts/dod-evaluate.mjs "${CHANGED_MDX[@]}" >> "$GITHUB_STEP_SUMMARY"
+            DOD_EXIT=0
+            if [ "${{ inputs.fail_on_dod_drop }}" = "true" ]; then
+              node scripts/dod-evaluate.mjs --exit-on-needs-review "${CHANGED_MDX[@]}" >> "$GITHUB_STEP_SUMMARY" || DOD_EXIT=$?
+            else
+              node scripts/dod-evaluate.mjs "${CHANGED_MDX[@]}" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            if [ "$DOD_EXIT" -ne 0 ]; then
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo ":x: Workflow failed because \`fail_on_dod_drop=true\` and DoD dropped below 10/10." >> "$GITHUB_STEP_SUMMARY"
+              exit "$DOD_EXIT"
+            fi
           fi
 
       - name: Commit changes

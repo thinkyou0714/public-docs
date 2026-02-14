@@ -100,6 +100,7 @@ gh pr create --title "Add {TEMPLATE_ID}" --body "DoD checklist attached"
 9. 同一 `run_id` は重複追記されない（idempotent）
 10. `auto_commit=false` の場合は Actions summary に差分一覧が表示される
 11. `auto_commit=false` の summary には変更記事の DoD 10/10 維持状況も表示される
+12. `fail_on_dod_drop=true` なら DoD が 10/10 未満の変更記事があると workflow を fail する
 
 ### Step 7: CI 通過 → マージ → 自動デプロイ
 

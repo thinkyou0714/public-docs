@@ -6,12 +6,16 @@
  *
  * Usage:
  *   node scripts/dod-evaluate.mjs content/templates/tmpl-line-001.mdx
+ *   node scripts/dod-evaluate.mjs --exit-on-needs-review content/templates/tmpl-line-001.mdx
  */
 
 import fs from 'fs';
 import path from 'path';
 
-const files = process.argv.slice(2).filter((p) => p && p.endsWith('.mdx'));
+const exitOnNeedsReview = process.argv.includes('--exit-on-needs-review');
+const files = process.argv
+  .slice(2)
+  .filter((p) => p && !p.startsWith('--') && p.endsWith('.mdx'));
 
 function normalizeContent(content) {
   return content.replace(/\r\n/g, '\n');
@@ -82,8 +86,10 @@ console.log('| template_id | file | DoD | status |');
 console.log('|---|---|---:|---|');
 
 let fullPass = 0;
+let reviewedCount = 0;
 for (const file of files) {
   if (!fs.existsSync(file)) continue;
+  reviewedCount++;
   const raw = fs.readFileSync(file, 'utf-8');
   const content = normalizeContent(raw);
   const fm = parseFrontmatter(content);
@@ -94,4 +100,14 @@ for (const file of files) {
 }
 
 console.log('');
-console.log(`Overall: ${fullPass}/${files.length} changed articles are 10/10.`);
+const needsReview = Math.max(0, reviewedCount - fullPass);
+console.log(`Overall: ${fullPass}/${reviewedCount} changed articles are 10/10.`);
+if (needsReview > 0) {
+  console.log(`:warning: DoD review required for ${needsReview} article(s).`);
+} else {
+  console.log('✅ All changed articles maintain DoD 10/10.');
+}
+
+if (exitOnNeedsReview && needsReview > 0) {
+  process.exit(2);
+}
