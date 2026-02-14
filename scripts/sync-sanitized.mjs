@@ -19,8 +19,10 @@ const SANITIZED_DIR = path.resolve('C:\\n8n\\obsidian-vault\\10_sanitized');
 
 const APPLY = process.argv.includes('--apply');
 const VERBOSE = process.argv.includes('--verbose');
-const START_MARKER = '<!-- SANITIZED_SYNC_START -->';
-const END_MARKER = '<!-- SANITIZED_SYNC_END -->';
+const START_MARKER = '{/* SANITIZED_SYNC_START */}';
+const END_MARKER = '{/* SANITIZED_SYNC_END */}';
+const LEGACY_START_MARKER = '<!-- SANITIZED_SYNC_START -->';
+const LEGACY_END_MARKER = '<!-- SANITIZED_SYNC_END -->';
 
 function getFilesRecursive(dir, re) {
   if (!fs.existsSync(dir)) return [];
@@ -126,9 +128,18 @@ function buildSyncBlock(data) {
 }
 
 function upsertSyncBlock(body, syncBlock) {
-  const hasBlock = body.includes(START_MARKER) && body.includes(END_MARKER);
-  if (hasBlock) {
-    const re = new RegExp(`${START_MARKER}[\\s\\S]*?${END_MARKER}\\n?`, 'm');
+  const hasNewBlock = body.includes(START_MARKER) && body.includes(END_MARKER);
+  const hasLegacyBlock = body.includes(LEGACY_START_MARKER) && body.includes(LEGACY_END_MARKER);
+  if (hasNewBlock) {
+    const escapedStart = START_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedEnd = END_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}\\n?`, 'm');
+    return body.replace(re, syncBlock);
+  }
+  if (hasLegacyBlock) {
+    const escapedStart = LEGACY_START_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedEnd = LEGACY_END_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}\\n?`, 'm');
     return body.replace(re, syncBlock);
   }
   return `${syncBlock}${body}`;
