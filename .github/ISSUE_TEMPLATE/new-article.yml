@@ -1,0 +1,83 @@
+name: "New Article Request"
+description: "Request a new template guide or troubleshooting article"
+title: "[Article] "
+labels: ["article", "triage"]
+body:
+  - type: dropdown
+    id: section
+    attributes:
+      label: Section
+      options:
+        - templates
+        - troubleshooting
+        - guides
+        - changelog
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - LINE
+        - Obsidian
+        - X
+        - Ops
+    validations:
+      required: true
+
+  - type: input
+    id: title
+    attributes:
+      label: Article Title
+      placeholder: "e.g., LINE リッチメニュー自動切替テンプレート"
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: Value (1 line, qualitative)
+      description: "What value does this article provide? No numbers."
+      placeholder: "e.g., リッチメニューを時間帯で自動切替し、手動運用を排除する"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulty
+      options:
+        - beginner
+        - intermediate
+        - advanced
+    validations:
+      required: true
+
+  - type: dropdown
+    id: duration
+    attributes:
+      label: Duration Bucket
+      options:
+        - short (~15 min)
+        - mid (30-60 min)
+        - long (60+ min)
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: "Any relevant background. DO NOT include secrets, URLs, or company names."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: secret_check
+    attributes:
+      label: Security Check
+      options:
+        - label: "This issue contains NO secrets (URLs, company names, numbers, tokens, etc.)"
+          required: true

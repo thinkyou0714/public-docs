@@ -1,0 +1,35 @@
+name: "Bug Report"
+description: "Report an issue with an article or the site"
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: input
+    id: article
+    attributes:
+      label: Affected Article (template_id)
+      placeholder: "e.g., TMPL-LINE-001 or 'site-wide'"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: "What's wrong? DO NOT include secrets."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: secret_check
+    attributes:
+      label: Security Check
+      options:
+        - label: "This issue contains NO secrets (URLs, company names, numbers, tokens, etc.)"
+          required: true

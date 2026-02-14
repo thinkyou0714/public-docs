@@ -16,7 +16,7 @@ const ROOT = path.resolve(__dirname, '..');
 const CONTENT_DIR = path.join(ROOT, 'content');
 const OUTPUT = path.join(ROOT, 'public', 'sitemap.xml');
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://public-docs.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://public-docs-phi.vercel.app';
 const SECTIONS = ['templates', 'guides', 'troubleshooting', 'changelog'];
 
 function getMdxFiles(dir) {

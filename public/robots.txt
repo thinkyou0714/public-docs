@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://public-docs.vercel.app/sitemap.xml
+Sitemap: https://public-docs-phi.vercel.app/sitemap.xml
