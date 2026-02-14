@@ -88,6 +88,10 @@ jobs:
         run: |
           echo "dod_drop=false" >> "$GITHUB_OUTPUT"
           echo "changed_files=none" >> "$GITHUB_OUTPUT"
+          echo "content_files=none" >> "$GITHUB_OUTPUT"
+          echo "other_files=none" >> "$GITHUB_OUTPUT"
+          echo "content_count=0" >> "$GITHUB_OUTPUT"
+          echo "other_count=0" >> "$GITHUB_OUTPUT"
           echo "## Sync Result Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Tenant: \`${{ inputs.tenant_id }}\`" >> "$GITHUB_STEP_SUMMARY"
@@ -98,11 +102,49 @@ jobs:
             echo "No file changes detected." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          mapfile -t CHANGED_FILES < <(git diff --name-only | head -n 20)
+          mapfile -t CHANGED_ALL < <(git diff --name-only)
+          mapfile -t CHANGED_CONTENT < <(printf '%s\n' "${CHANGED_ALL[@]}" | grep '^content/' || true)
+          mapfile -t CHANGED_OTHER < <(printf '%s\n' "${CHANGED_ALL[@]}" | grep -v '^content/' || true)
+
+          PRIORITIZED=("${CHANGED_CONTENT[@]}" "${CHANGED_OTHER[@]}")
+          CHANGED_FILES=()
+          for f in "${PRIORITIZED[@]}"; do
+            [ -n "$f" ] || continue
+            CHANGED_FILES+=("$f")
+            if [ "${#CHANGED_FILES[@]}" -ge 20 ]; then
+              break
+            fi
+          done
+
+          CHANGED_CONTENT_LIMITED=()
+          for f in "${CHANGED_CONTENT[@]}"; do
+            [ -n "$f" ] || continue
+            CHANGED_CONTENT_LIMITED+=("$f")
+            if [ "${#CHANGED_CONTENT_LIMITED[@]}" -ge 20 ]; then
+              break
+            fi
+          done
+
+          CHANGED_OTHER_LIMITED=()
+          for f in "${CHANGED_OTHER[@]}"; do
+            [ -n "$f" ] || continue
+            CHANGED_OTHER_LIMITED+=("$f")
+            if [ "${#CHANGED_OTHER_LIMITED[@]}" -ge 20 ]; then
+              break
+            fi
+          done
           {
             echo "changed_files<<EOF"
             printf '%s\n' "${CHANGED_FILES[@]}"
             echo "EOF"
+            echo "content_files<<EOF"
+            printf '%s\n' "${CHANGED_CONTENT_LIMITED[@]}"
+            echo "EOF"
+            echo "other_files<<EOF"
+            printf '%s\n' "${CHANGED_OTHER_LIMITED[@]}"
+            echo "EOF"
+            echo "content_count=${#CHANGED_CONTENT[@]}"
+            echo "other_count=${#CHANGED_OTHER[@]}"
           } >> "$GITHUB_OUTPUT"
           echo "### Changed Files" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -145,15 +187,32 @@ jobs:
             const label = 'sync-dod-drop';
             const title = `[DoD Drop][${tenant}] Manual sync requires article review`;
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
-            const changedRaw = `${{ steps.diff_summary.outputs.changed_files }}`.trim();
-            const changedFiles = changedRaw && changedRaw !== 'none'
-              ? changedRaw.split('\n').filter(Boolean)
+            const contentRaw = `${{ steps.diff_summary.outputs.content_files }}`.trim();
+            const otherRaw = `${{ steps.diff_summary.outputs.other_files }}`.trim();
+            const contentFiles = contentRaw && contentRaw !== 'none'
+              ? contentRaw.split('\n').filter(Boolean)
               : [];
-            const changedSection = changedFiles.length > 0
+            const otherFiles = otherRaw && otherRaw !== 'none'
+              ? otherRaw.split('\n').filter(Boolean)
+              : [];
+            const contentCount = Number(`${{ steps.diff_summary.outputs.content_count }}` || '0');
+            const otherCount = Number(`${{ steps.diff_summary.outputs.other_count }}` || '0');
+            const changedSection = contentFiles.length > 0 || otherCount > 0
               ? [
                   '',
-                  '### Changed Files (up to 20)',
-                  ...changedFiles.map((f) => `- \`${f}\``),
+                  '### Changed Files (content priority, up to 20 each group)',
+                  ...(contentFiles.length > 0
+                    ? ['#### content/**', ...contentFiles.map((f) => `- \`${f}\``)]
+                    : ['#### content/**', '- none']),
+                  ...(otherCount > 0
+                    ? [
+                        '',
+                        `<details><summary>other files: ${otherCount}</summary>`,
+                        '',
+                        ...otherFiles.map((f) => `- \`${f}\``),
+                        '</details>',
+                      ]
+                    : []),
                 ].join('\n')
               : '';
 
