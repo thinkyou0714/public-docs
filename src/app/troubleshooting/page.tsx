@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { getAllArticles } from '@/lib/content';
 import ArticleListWithFilter from '@/components/ArticleListWithFilter';
+
+export const metadata: Metadata = {
+  title: 'Troubleshooting',
+  description: 'Symptom-based troubleshooting articles for common automation issues.',
+};
 
 export default function TroubleshootingPage() {
   const articles = getAllArticles('troubleshooting');

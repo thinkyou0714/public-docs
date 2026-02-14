@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { getAllArticles } from '@/lib/content';
 import ArticleListWithFilter from '@/components/ArticleListWithFilter';
+
+export const metadata: Metadata = {
+  title: 'Guides',
+  description: 'Cross-cutting guides, best practices, and operational knowledge.',
+};
 
 export default function GuidesPage() {
   const articles = getAllArticles('guides');

@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { getAllArticles } from '@/lib/content';
 import ArticleListWithFilter from '@/components/ArticleListWithFilter';
+
+export const metadata: Metadata = {
+  title: 'Changelog',
+  description: 'Update history, version changes, and migration notes.',
+};
 
 export default function ChangelogPage() {
   const articles = getAllArticles('changelog');

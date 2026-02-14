@@ -4,9 +4,23 @@ import Footer from '@/components/Footer';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Template Implementation Guides',
+  title: {
+    default: 'Template Implementation Guides',
+    template: '%s | Template Guides',
+  },
   description:
-    'Public documentation for template implementation guides. No secrets or private data.',
+    'Step-by-step automation template guides. Reproducible setup, common pitfalls, and troubleshooting.',
+  openGraph: {
+    title: 'Template Implementation Guides',
+    description:
+      'Step-by-step automation template guides with reproducible setup instructions.',
+    type: 'website',
+    locale: 'ja_JP',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
