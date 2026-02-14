@@ -26,6 +26,17 @@ to public-docs workflows without exposing secrets.
 | Tenant A | `obsidian-sync/10_sanitized/tenant-a` | `tenant_id=tenant-a` |
 | Tenant B | `obsidian-sync/10_sanitized/tenant-b` | `tenant_id=tenant-b` |
 
+## Workflow Gate Mapping
+
+| Tenant | Environment Gate |
+|---|---|
+| Shared | `sync-shared` |
+| Tenant A | `sync-tenant-a` |
+| Tenant B | `sync-tenant-b` |
+
+Set required reviewers for each environment in repository settings to enforce
+execution separation for `apply=true`.
+
 ## Change Rule
 
 1. Add/update variable name here first.

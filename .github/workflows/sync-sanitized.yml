@@ -30,6 +30,7 @@ jobs:
   sync:
     name: Run sanitized sync
     runs-on: ubuntu-latest
+    environment: sync-${{ inputs.tenant_id }}
     steps:
       - uses: actions/checkout@v4
 

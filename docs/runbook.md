@@ -95,6 +95,7 @@ gh pr create --title "Add {TEMPLATE_ID}" --body "DoD checklist attached"
 4. まず `apply=false` で実行（dry-run）
 5. 問題なければ `apply=true` で再実行
 6. 自動反映したい場合のみ `auto_commit=true` を指定
+7. `apply=true` は `sync-{tenant_id}` environment の承認ポリシーに従う
 
 ### Step 7: CI 通過 → マージ → 自動デプロイ
 
