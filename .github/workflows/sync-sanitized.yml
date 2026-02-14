@@ -92,6 +92,7 @@ jobs:
           echo "other_files=none" >> "$GITHUB_OUTPUT"
           echo "content_count=0" >> "$GITHUB_OUTPUT"
           echo "other_count=0" >> "$GITHUB_OUTPUT"
+          echo "dod_worst=none" >> "$GITHUB_OUTPUT"
           echo "## Sync Result Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Tenant: \`${{ inputs.tenant_id }}\`" >> "$GITHUB_STEP_SUMMARY"
@@ -163,6 +164,12 @@ jobs:
             echo "No changed article files." >> "$GITHUB_STEP_SUMMARY"
           else
             DOD_EXIT=0
+            mapfile -t WORST_LINES < <(node scripts/dod-evaluate.mjs --emit-worst 3 --worst-only "${CHANGED_MDX[@]}")
+            {
+              echo "dod_worst<<EOF"
+              printf '%s\n' "${WORST_LINES[@]}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
             if [ "${{ inputs.fail_on_dod_drop }}" = "true" ]; then
               node scripts/dod-evaluate.mjs --exit-on-needs-review "${CHANGED_MDX[@]}" >> "$GITHUB_STEP_SUMMARY" || DOD_EXIT=$?
             else
@@ -197,6 +204,20 @@ jobs:
               : [];
             const contentCount = Number(`${{ steps.diff_summary.outputs.content_count }}` || '0');
             const otherCount = Number(`${{ steps.diff_summary.outputs.other_count }}` || '0');
+            const worstRaw = `${{ steps.diff_summary.outputs.dod_worst }}`.trim();
+            const worstRows = worstRaw && worstRaw !== 'none'
+              ? worstRaw.split('\n').filter(Boolean)
+              : [];
+            const worstSection = worstRows.length > 0
+              ? [
+                  '',
+                  '### DoD Worst (lowest 3)',
+                  ...worstRows.map((line) => {
+                    const [id, score, file] = line.split('|');
+                    return `- \`${id}\` : **${score}** (${file})`;
+                  }),
+                ].join('\n')
+              : '';
             const changedSection = contentFiles.length > 0 || otherCount > 0
               ? [
                   '',
@@ -241,6 +262,7 @@ jobs:
               `- Run: ${runUrl}`,
               `- Actor: @${context.actor}`,
               `- Commit: \`${context.sha.slice(0, 12)}\``,
+              worstSection,
               changedSection,
               '',
               'Please review changed articles and restore DoD 10/10 before rerun.',

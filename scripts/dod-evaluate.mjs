@@ -12,7 +12,16 @@
 import fs from 'fs';
 import path from 'path';
 
+function getArgValue(flag, fallback = '') {
+  const i = process.argv.indexOf(flag);
+  if (i === -1) return fallback;
+  const v = process.argv[i + 1];
+  return v && !v.startsWith('--') ? v : fallback;
+}
+
 const exitOnNeedsReview = process.argv.includes('--exit-on-needs-review');
+const worstOnly = process.argv.includes('--worst-only');
+const emitWorst = Number.parseInt(getArgValue('--emit-worst', '0'), 10) || 0;
 const files = process.argv
   .slice(2)
   .filter((p) => p && !p.startsWith('--') && p.endsWith('.mdx'));
@@ -78,15 +87,18 @@ const DOD_CHECKS = [
 ];
 
 if (files.length === 0) {
-  console.log('No changed article files.');
+  if (!worstOnly) console.log('No changed article files.');
   process.exit(0);
 }
 
-console.log('| template_id | file | DoD | status |');
-console.log('|---|---|---:|---|');
-
 let fullPass = 0;
 let reviewedCount = 0;
+const records = [];
+
+if (!worstOnly) {
+  console.log('| template_id | file | DoD | status |');
+  console.log('|---|---|---:|---|');
+}
 for (const file of files) {
   if (!fs.existsSync(file)) continue;
   reviewedCount++;
@@ -94,18 +106,33 @@ for (const file of files) {
   const content = normalizeContent(raw);
   const fm = parseFrontmatter(content);
   const passCount = DOD_CHECKS.filter((fn) => fn(fm, content)).length;
+  const templateId = fm.template_id || '(no ID)';
   const status = passCount === 10 ? 'maintained (10/10)' : 'needs review';
   if (passCount === 10) fullPass++;
-  console.log(`| ${fm.template_id || '(no ID)'} | ${path.normalize(file)} | ${passCount}/10 | ${status} |`);
+  records.push({ templateId, file: path.normalize(file), passCount });
+  if (!worstOnly) {
+    console.log(`| ${templateId} | ${path.normalize(file)} | ${passCount}/10 | ${status} |`);
+  }
 }
 
-console.log('');
 const needsReview = Math.max(0, reviewedCount - fullPass);
-console.log(`Overall: ${fullPass}/${reviewedCount} changed articles are 10/10.`);
-if (needsReview > 0) {
-  console.log(`:warning: DoD review required for ${needsReview} article(s).`);
-} else {
-  console.log('✅ All changed articles maintain DoD 10/10.');
+if (!worstOnly) {
+  console.log('');
+  console.log(`Overall: ${fullPass}/${reviewedCount} changed articles are 10/10.`);
+  if (needsReview > 0) {
+    console.log(`:warning: DoD review required for ${needsReview} article(s).`);
+  } else {
+    console.log('✅ All changed articles maintain DoD 10/10.');
+  }
+}
+
+if (emitWorst > 0) {
+  const worst = [...records]
+    .sort((a, b) => a.passCount - b.passCount)
+    .slice(0, emitWorst);
+  for (const r of worst) {
+    console.log(`${r.templateId}|${r.passCount}/10|${r.file}`);
+  }
 }
 
 if (exitOnNeedsReview && needsReview > 0) {
