@@ -49,6 +49,8 @@ DoD gate option:
 
 - `fail_on_dod_drop=true` in workflow_dispatch fails the run when any changed
   article falls below DoD 10/10.
+- When DoD gate fails, workflow auto-creates (deduplicated) an Issue with label
+  `sync-dod-drop` per tenant.
 
 ## Change Rule
 

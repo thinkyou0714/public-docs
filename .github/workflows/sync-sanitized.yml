@@ -30,6 +30,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   sync:
@@ -82,8 +83,10 @@ jobs:
             --sha "${{ github.sha }}"
 
       - name: Write diff summary (no auto-commit)
+        id: diff_summary
         if: ${{ inputs.apply == true && inputs.auto_commit == false }}
         run: |
+          echo "dod_drop=false" >> "$GITHUB_OUTPUT"
           echo "## Sync Result Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Tenant: \`${{ inputs.tenant_id }}\`" >> "$GITHUB_STEP_SUMMARY"
@@ -117,11 +120,76 @@ jobs:
               node scripts/dod-evaluate.mjs "${CHANGED_MDX[@]}" >> "$GITHUB_STEP_SUMMARY"
             fi
             if [ "$DOD_EXIT" -ne 0 ]; then
+              echo "dod_drop=true" >> "$GITHUB_OUTPUT"
               echo "" >> "$GITHUB_STEP_SUMMARY"
               echo ":x: Workflow failed because \`fail_on_dod_drop=true\` and DoD dropped below 10/10." >> "$GITHUB_STEP_SUMMARY"
               exit "$DOD_EXIT"
             fi
           fi
+
+      - name: Create issue on DoD drop
+        if: ${{ always() && inputs.apply == true && inputs.auto_commit == false && inputs.fail_on_dod_drop == true && steps.diff_summary.outputs.dod_drop == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const tenant = '${{ inputs.tenant_id }}';
+            const label = 'sync-dod-drop';
+            const title = `[DoD Drop][${tenant}] Manual sync requires article review`;
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            // Ensure label exists
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: label });
+            } catch (e) {
+              if (e.status === 404) {
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: label,
+                  color: 'B60205',
+                  description: 'DoD dropped below 10/10 during manual sync run',
+                });
+              } else {
+                throw e;
+              }
+            }
+
+            // Deduplicate: if same tenant open issue exists, do not create a new one.
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              labels: label,
+              per_page: 100,
+            });
+            const duplicate = openIssues.find((i) => i.title.includes(`[DoD Drop][${tenant}]`));
+            if (duplicate) {
+              core.info(`Existing open issue found: #${duplicate.number}. Skipping creation.`);
+              return;
+            }
+
+            const body = [
+              '## DoD Gate Failed',
+              '',
+              `- Tenant: \`${tenant}\``,
+              '- Condition: `fail_on_dod_drop=true`',
+              `- Run: ${runUrl}`,
+              `- Actor: @${context.actor}`,
+              `- Commit: \`${context.sha.slice(0, 12)}\``,
+              '',
+              'Please review changed articles and restore DoD 10/10 before rerun.',
+            ].join('\n');
+
+            const created = await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body,
+              labels: [label],
+            });
+            core.info(`Created issue #${created.data.number}`);
 
       - name: Commit changes
         if: ${{ inputs.apply == true && inputs.auto_commit == true }}
