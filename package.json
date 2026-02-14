@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "check-secrets": "node scripts/check-secrets.mjs",
+    "sync-sanitized": "node scripts/sync-sanitized.mjs",
     "dod-report": "node scripts/dod-report.mjs",
     "prepare": "node scripts/install-hooks.mjs"
   },

@@ -59,23 +59,29 @@ Obsidian正本 → sanitized → publish → 自動デプロイ の日常運用�
 # 1. ブランチ作成
 git checkout -b article/{TEMPLATE_ID}
 
-# 2. MDX ファイルを content/{section}/ に配置
+# 2. sanitized から同期（まず dry-run）
+npm run sync-sanitized
 
-# 3. 機密チェック
+# 3. 問題なければ apply
+node scripts/sync-sanitized.mjs --apply
+
+# 4. 必要に応じて MDX ファイルを微修正
+
+# 5. 機密チェック
 npm run check-secrets
 
-# 4. DoD レポート
+# 6. DoD レポート
 npm run dod-report
 
-# 5. ビルド確認
+# 7. ビルド確認
 npm run build
 
-# 6. コミット & プッシュ
+# 8. コミット & プッシュ
 git add .
 git commit -m "Add {TEMPLATE_ID}: {title}"
 git push -u origin HEAD
 
-# 7. PR 作成（DoD チェックリスト付きテンプレートが自動表示）
+# 9. PR 作成（DoD チェックリスト付きテンプレートが自動表示）
 gh pr create --title "Add {TEMPLATE_ID}" --body "DoD checklist attached"
 ```
 
@@ -149,5 +155,7 @@ gh pr create --title "Add {TEMPLATE_ID}" --body "DoD checklist attached"
 | 開発サーバー起動 | `npm run dev` |
 | ビルド（sitemap 生成含む） | `npm run build` |
 | 機密チェック | `npm run check-secrets` |
+| sanitized 同期（dry-run） | `npm run sync-sanitized` |
+| sanitized 同期（apply） | `node scripts/sync-sanitized.mjs --apply` |
 | DoD レポート | `npm run dod-report` |
 | pre-commit フック再インストール | `npm run prepare` |
