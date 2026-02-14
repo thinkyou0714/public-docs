@@ -98,6 +98,7 @@ gh pr create --title "Add {TEMPLATE_ID}" --body "DoD checklist attached"
 7. `apply=true` は `sync-{tenant_id}` environment の承認ポリシーに従う
 8. 実行監査ログは `docs/sync-audit-log.md` に自動追記される
 9. 同一 `run_id` は重複追記されない（idempotent）
+10. `auto_commit=false` の場合は Actions summary に差分一覧が表示される
 
 ### Step 7: CI 通過 → マージ → 自動デプロイ
 
