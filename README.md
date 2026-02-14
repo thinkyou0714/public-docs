@@ -2,6 +2,8 @@
 
 Template Implementation Guides — 公開ドキュメントサイト
 
+**本番サイト**: https://public-docs-phi.vercel.app
+
 ## 概要
 
 Next.js (App Router) + MDX で構築された静的サイト。Vercel でデプロイ。
@@ -118,6 +120,28 @@ Obsidian Vault での運用フォルダ:
 | `/00_raw_private` | 生データ、機密OK | OK | **禁止** |
 | `/10_sanitized` | 顧客送付用、機密ゼロ | **禁止** | OK |
 | `/20_publish` | サイト公開用、機密ゼロ | **禁止** | OK |
+
+## CI/CD
+
+| ステージ | ツール | トリガー |
+|---------|-------|---------|
+| ローカル機密チェック | pre-commit hook (`check-secrets.mjs`) | `git commit` |
+| CI（機密+ビルド+DoD） | GitHub Actions | push / PR to master |
+| デプロイ | Vercel | master push（自動） |
+
+```bash
+# セットアップ（hook自動インストール含む）
+npm install
+
+# ローカル開発
+npm run dev
+
+# 機密チェック
+npm run check-secrets
+
+# ビルド（sitemap自動生成 + 静的出力）
+npm run build
+```
 
 ## 関連リポジトリ
 
