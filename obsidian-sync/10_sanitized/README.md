@@ -1,7 +1,13 @@
 # Workflow staging for sanitized sync
 
-Place `*-sanitized.md` files in this directory when using the GitHub Actions
+Place `*-sanitized.md` files in tenant folders when using the GitHub Actions
 `Sync Sanitized Snapshots` workflow.
+
+Directory layout:
+
+- `obsidian-sync/10_sanitized/shared/`
+- `obsidian-sync/10_sanitized/tenant-a/`
+- `obsidian-sync/10_sanitized/tenant-b/`
 
 Examples:
 
@@ -15,4 +21,5 @@ Notes:
 
 - Keep content sanitized (no URLs, names, tokens, numbers).
 - Files are matched by `template_id` extracted from the first heading line.
-- Run workflow in `dry-run` mode first, then run with `apply=true`.
+- Select `tenant_id` in workflow_dispatch, run `dry-run` first.
+- Then rerun with `apply=true` (and optional `auto_commit=true`).

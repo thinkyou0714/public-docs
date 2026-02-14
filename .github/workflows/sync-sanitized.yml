@@ -3,11 +3,15 @@ name: Sync Sanitized Snapshots
 on:
   workflow_dispatch:
     inputs:
-      sanitized_dir:
-        description: "Path containing *-sanitized.md files"
+      tenant_id:
+        description: "Tenant folder under obsidian-sync/10_sanitized"
         required: true
-        default: "obsidian-sync/10_sanitized"
-        type: string
+        default: "shared"
+        type: choice
+        options:
+          - shared
+          - tenant-a
+          - tenant-b
       apply:
         description: "Apply changes to content files"
         required: true
@@ -39,10 +43,15 @@ jobs:
 
       - name: Sync (dry-run or apply)
         run: |
+          SAN_DIR="obsidian-sync/10_sanitized/${{ inputs.tenant_id }}"
+          if [ ! -d "$SAN_DIR" ]; then
+            echo "[ERROR] sanitized tenant directory not found: $SAN_DIR"
+            exit 1
+          fi
           if [ "${{ inputs.apply }}" = "true" ]; then
-            node scripts/sync-sanitized.mjs --apply --sanitized-dir "${{ inputs.sanitized_dir }}"
+            node scripts/sync-sanitized.mjs --apply --sanitized-dir "$SAN_DIR"
           else
-            node scripts/sync-sanitized.mjs --sanitized-dir "${{ inputs.sanitized_dir }}"
+            node scripts/sync-sanitized.mjs --sanitized-dir "$SAN_DIR"
           fi
 
       - name: Validate secrets

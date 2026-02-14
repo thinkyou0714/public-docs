@@ -89,11 +89,12 @@ gh pr create --title "Add {TEMPLATE_ID}" --body "DoD checklist attached"
 
 ### Step 6B: GitHub Actions の手動実行（運用担当向け）
 
-1. `obsidian-sync/10_sanitized/` に `*-sanitized.md` を配置して push
+1. `obsidian-sync/10_sanitized/{tenant_id}/` に `*-sanitized.md` を配置して push
 2. GitHub Actions の `Sync Sanitized Snapshots` を開く
-3. まず `apply=false` で実行（dry-run）
-4. 問題なければ `apply=true` で再実行
-5. 自動反映したい場合のみ `auto_commit=true` を指定
+3. `tenant_id` を選択（`shared` / `tenant-a` / `tenant-b`）
+4. まず `apply=false` で実行（dry-run）
+5. 問題なければ `apply=true` で再実行
+6. 自動反映したい場合のみ `auto_commit=true` を指定
 
 ### Step 7: CI 通過 → マージ → 自動デプロイ
 
