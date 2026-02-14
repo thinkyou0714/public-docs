@@ -98,6 +98,15 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           git diff --stat >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### DoD Status (Changed Articles)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          mapfile -t CHANGED_MDX < <(git diff --name-only -- 'content/**/*.mdx')
+          if [ "${#CHANGED_MDX[@]}" -eq 0 ]; then
+            echo "No changed article files." >> "$GITHUB_STEP_SUMMARY"
+          else
+            node scripts/dod-evaluate.mjs "${CHANGED_MDX[@]}" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Commit changes
         if: ${{ inputs.apply == true && inputs.auto_commit == true }}
