@@ -156,22 +156,8 @@ jobs:
               }
             }
 
-            // Deduplicate: if same tenant open issue exists, do not create a new one.
-            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
-              owner,
-              repo,
-              state: 'open',
-              labels: label,
-              per_page: 100,
-            });
-            const duplicate = openIssues.find((i) => i.title.includes(`[DoD Drop][${tenant}]`));
-            if (duplicate) {
-              core.info(`Existing open issue found: #${duplicate.number}. Skipping creation.`);
-              return;
-            }
-
-            const body = [
-              '## DoD Gate Failed',
+            const commentBody = [
+              '## DoD Gate Failed (New Run)',
               '',
               `- Tenant: \`${tenant}\``,
               '- Condition: `fail_on_dod_drop=true`',
@@ -182,11 +168,31 @@ jobs:
               'Please review changed articles and restore DoD 10/10 before rerun.',
             ].join('\n');
 
+            // Deduplicate by tenant open issue: append comment instead of creating new issue.
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              labels: label,
+              per_page: 100,
+            });
+            const duplicate = openIssues.find((i) => i.title.includes(`[DoD Drop][${tenant}]`));
+            if (duplicate) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: duplicate.number,
+                body: commentBody,
+              });
+              core.info(`Existing open issue found: #${duplicate.number}. Added comment.`);
+              return;
+            }
+
             const created = await github.rest.issues.create({
               owner,
               repo,
               title,
-              body,
+              body: commentBody,
               labels: [label],
             });
             core.info(`Created issue #${created.data.number}`);
