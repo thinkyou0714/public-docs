@@ -15,7 +15,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 const CONTENT_DIR = path.join(ROOT_DIR, 'content');
-const SANITIZED_DIR = path.resolve('C:\\n8n\\obsidian-vault\\10_sanitized');
+const DEFAULT_SANITIZED_DIR = 'C:\\n8n\\obsidian-vault\\10_sanitized';
+
+function getArgValue(flag) {
+  const i = process.argv.indexOf(flag);
+  if (i === -1) return null;
+  return process.argv[i + 1] && !process.argv[i + 1].startsWith('--')
+    ? process.argv[i + 1]
+    : null;
+}
+
+const SANITIZED_DIR = path.resolve(
+  getArgValue('--sanitized-dir') ?? process.env.SANITIZED_DIR ?? DEFAULT_SANITIZED_DIR,
+);
 
 const APPLY = process.argv.includes('--apply');
 const VERBOSE = process.argv.includes('--verbose');
@@ -161,6 +173,9 @@ function getAllMdxByTemplateId() {
 function main() {
   if (!fs.existsSync(SANITIZED_DIR)) {
     console.error(`[ERROR] sanitized directory not found: ${SANITIZED_DIR}`);
+    console.error(
+      'Hint: set --sanitized-dir <path> or SANITIZED_DIR env when running in CI/workflow.',
+    );
     process.exit(1);
   }
 
