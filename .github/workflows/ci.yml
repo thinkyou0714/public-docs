@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  check-secrets:
+    name: Secret Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run secret detection
+        run: node scripts/check-secrets.mjs
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: check-secrets
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify static output
+        run: |
+          test -d out && echo "Static output directory exists"
+          file_count=$(find out -name "*.html" | wc -l)
+          echo "Generated $file_count HTML files"
+          test "$file_count" -gt 0 || exit 1
+
+  dod-check:
+    name: DoD Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check required frontmatter fields
+        run: |
+          echo "=== Frontmatter Validation ==="
+          ERRORS=0
+          for f in content/**/*.mdx; do
+            [ -f "$f" ] || continue
+            echo "Checking: $f"
+            # Required fields
+            for field in template_id title category difficulty duration_bucket version last_verified_yyyy_mm visibility; do
+              if ! grep -q "^${field}:" "$f"; then
+                echo "  ERROR: missing $field"
+                ERRORS=$((ERRORS + 1))
+              fi
+            done
+          done
+          echo ""
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "FAIL: $ERRORS missing frontmatter field(s)"
+            exit 1
+          else
+            echo "PASS: All required frontmatter fields present"
+          fi
+
+      - name: Check required sections
+        run: |
+          echo "=== Section Validation (templates only) ==="
+          ERRORS=0
+          REQUIRED_SECTIONS=(
+            "## 概要"
+            "## 対象ユーザー"
+            "## 前提条件"
+            "## セットアップ"
+            "## 詰まりTOP5"
+            "## 反証3"
+            "## トラブルシュート"
+            "## Secrets注意"
+            "## ロールバック"
+            "## FAQ10"
+            "## 変更履歴"
+            "## last_verified"
+          )
+          for f in content/templates/*.mdx; do
+            [ -f "$f" ] || continue
+            echo "Checking: $f"
+            for section in "${REQUIRED_SECTIONS[@]}"; do
+              if ! grep -q "$section" "$f"; then
+                echo "  WARN: missing section '$section'"
+                ERRORS=$((ERRORS + 1))
+              fi
+            done
+          done
+          echo ""
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "WARN: $ERRORS missing section(s) found (non-blocking)"
+          else
+            echo "PASS: All required sections present"
+          fi
