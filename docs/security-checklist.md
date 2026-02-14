@@ -22,7 +22,9 @@
 ## 自動チェック: check-secrets.sh
 
 ```bash
-bash scripts/check-secrets.sh
+npm run check-secrets
+# または
+node scripts/check-secrets.mjs
 ```
 
 ### チェック対象
@@ -42,7 +44,7 @@ bash scripts/check-secrets.sh
 
 - 自動チェックは **補助** であり、完全ではない
 - 企業名・個人名・数値は文脈依存のため手動チェック必須
-- 新しいパターンを発見したら `scripts/check-secrets.sh` に追加
+- 新しいパターンを発見したら `scripts/check-secrets.mjs` に追加
 
 ## 手動チェック手順
 

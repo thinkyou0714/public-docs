@@ -31,7 +31,7 @@
 # 機密チェックスクリプトを実行
 npm run check-secrets
 # または
-bash scripts/check-secrets.sh
+node scripts/check-secrets.mjs
 ```
 
 ### レビューフロー

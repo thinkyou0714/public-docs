@@ -100,14 +100,3 @@ export function getSlugsForSection(section: Section): string[] {
   return getMdxFiles(dir).map((f) => f.replace(/\.mdx?$/, ''));
 }
 
-/**
- * Unique values for filter UI.
- */
-export function getFilterOptions(articles: ArticleMeta[]) {
-  return {
-    categories: [...new Set(articles.map((a) => a.category))].sort(),
-    tags: [...new Set(articles.flatMap((a) => a.tags ?? []))].sort(),
-    difficulties: ['beginner', 'intermediate', 'advanced'] as const,
-    durations: ['short', 'mid', 'long'] as const,
-  };
-}
