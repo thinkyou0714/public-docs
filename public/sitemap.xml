@@ -2,62 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://public-docs-phi.vercel.app/</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/templates</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/guides</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/troubleshooting</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/changelog</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/templates/tmpl-line-001</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/templates/tmpl-obs-001</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/templates/tmpl-ops-001</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/templates/tmpl-x-001</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/guides/guide-001</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/troubleshooting/ts-line-001</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://public-docs-phi.vercel.app/changelog/cl-2026-02</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <priority>0.8</priority>
   </url>
 </urlset>

@@ -194,6 +194,18 @@ jobs:
             const label = 'sync-dod-drop';
             const title = `[DoD Drop][${tenant}] Manual sync requires article review`;
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const dodLabelMap = {
+              '1': '価値1行（概要）',
+              '2': '前提条件明記',
+              '3': 'セットアップ再現可能',
+              '4': '詰まりTOP5',
+              '5': '反証3',
+              '6': 'ログ/確認ポイント',
+              '7': '停止/復旧/ロールバック',
+              '8': '機密ゼロ',
+              '9': 'FAQ10',
+              '10': '変更履歴+内部リンク',
+            };
             const contentRaw = `${{ steps.diff_summary.outputs.content_files }}`.trim();
             const otherRaw = `${{ steps.diff_summary.outputs.other_files }}`.trim();
             const contentFiles = contentRaw && contentRaw !== 'none'
@@ -215,7 +227,7 @@ jobs:
                   ...worstRows.map((line) => {
                     const [id, score, file, failed] = line.split('|');
                     const failedPart = failed && failed !== '-'
-                      ? `, failed checks: \`${failed}\``
+                      ? `, failed checks: \`${failed}\` (${failed.split(',').map((n) => dodLabelMap[n.trim()] || n.trim()).join(', ')})`
                       : '';
                     return `- \`${id}\` : **${score}** (${file}${failedPart})`;
                   }),
