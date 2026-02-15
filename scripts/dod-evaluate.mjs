@@ -22,6 +22,7 @@ function getArgValue(flag, fallback = '') {
 const exitOnNeedsReview = process.argv.includes('--exit-on-needs-review');
 const worstOnly = process.argv.includes('--worst-only');
 const emitWorst = Number.parseInt(getArgValue('--emit-worst', '0'), 10) || 0;
+const emitFailTop = Number.parseInt(getArgValue('--emit-fail-top', '0'), 10) || 0;
 const files = process.argv
   .slice(2)
   .filter((p) => p && !p.startsWith('--') && p.endsWith('.mdx'));
@@ -140,6 +141,21 @@ if (emitWorst > 0) {
     .slice(0, emitWorst);
   for (const r of worst) {
     console.log(`${r.templateId}|${r.passCount}/10|${r.file}|${r.failedIds.join(',') || '-'}`);
+  }
+}
+
+if (emitFailTop > 0) {
+  const freq = new Map();
+  for (const r of records) {
+    for (const id of r.failedIds) {
+      freq.set(id, (freq.get(id) ?? 0) + 1);
+    }
+  }
+  const top = [...freq.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+    .slice(0, emitFailTop);
+  for (const [id, count] of top) {
+    console.log(`${id}|${count}`);
   }
 }
 

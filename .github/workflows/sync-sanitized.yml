@@ -93,6 +93,7 @@ jobs:
           echo "content_count=0" >> "$GITHUB_OUTPUT"
           echo "other_count=0" >> "$GITHUB_OUTPUT"
           echo "dod_worst=none" >> "$GITHUB_OUTPUT"
+          echo "dod_fail_top=none" >> "$GITHUB_OUTPUT"
           echo "## Sync Result Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Tenant: \`${{ inputs.tenant_id }}\`" >> "$GITHUB_STEP_SUMMARY"
@@ -165,9 +166,13 @@ jobs:
           else
             DOD_EXIT=0
             mapfile -t WORST_LINES < <(node scripts/dod-evaluate.mjs --emit-worst 3 --worst-only "${CHANGED_MDX[@]}")
+            mapfile -t FAIL_TOP_LINES < <(node scripts/dod-evaluate.mjs --emit-fail-top 3 --worst-only "${CHANGED_MDX[@]}")
             {
               echo "dod_worst<<EOF"
               printf '%s\n' "${WORST_LINES[@]}"
+              echo "EOF"
+              echo "dod_fail_top<<EOF"
+              printf '%s\n' "${FAIL_TOP_LINES[@]}"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
             if [ "${{ inputs.fail_on_dod_drop }}" = "true" ]; then
@@ -217,8 +222,12 @@ jobs:
             const contentCount = Number(`${{ steps.diff_summary.outputs.content_count }}` || '0');
             const otherCount = Number(`${{ steps.diff_summary.outputs.other_count }}` || '0');
             const worstRaw = `${{ steps.diff_summary.outputs.dod_worst }}`.trim();
+            const failTopRaw = `${{ steps.diff_summary.outputs.dod_fail_top }}`.trim();
             const worstRows = worstRaw && worstRaw !== 'none'
               ? worstRaw.split('\n').filter(Boolean)
+              : [];
+            const failTopRows = failTopRaw && failTopRaw !== 'none'
+              ? failTopRaw.split('\n').filter(Boolean)
               : [];
             const worstSection = worstRows.length > 0
               ? [
@@ -230,6 +239,17 @@ jobs:
                       ? `, failed checks: \`${failed}\` (${failed.split(',').map((n) => dodLabelMap[n.trim()] || n.trim()).join(', ')})`
                       : '';
                     return `- \`${id}\` : **${score}** (${file}${failedPart})`;
+                  }),
+                ].join('\n')
+              : '';
+            const failTopSection = failTopRows.length > 0
+              ? [
+                  '',
+                  '### Recommended Fix Order (by failure frequency)',
+                  ...failTopRows.map((line, idx) => {
+                    const [id, count] = line.split('|');
+                    const label = dodLabelMap[id] || id;
+                    return `${idx + 1}. check \`${id}\` (${label}) — affected articles: ${count}`;
                   }),
                 ].join('\n')
               : '';
@@ -277,6 +297,7 @@ jobs:
               `- Run: ${runUrl}`,
               `- Actor: @${context.actor}`,
               `- Commit: \`${context.sha.slice(0, 12)}\``,
+              failTopSection,
               worstSection,
               changedSection,
               '',

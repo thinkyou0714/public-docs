@@ -51,7 +51,8 @@ DoD gate option:
   article falls below DoD 10/10.
 - When DoD gate fails, workflow opens a `sync-dod-drop` Issue per tenant and
   appends follow-up run details + DoD worst 3 + failed check IDs (with Japanese
-  labels) + changed files (up to 20) as comments to the same open Issue.
+  labels) + failure-frequency fix order + changed files (up to 20) as comments
+  to the same open Issue.
 
 ## Change Rule
 
