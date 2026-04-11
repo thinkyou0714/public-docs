@@ -190,7 +190,7 @@ jobs:
 
       - name: Create issue on DoD drop
         if: ${{ always() && inputs.apply == true && inputs.auto_commit == false && inputs.fail_on_dod_drop == true && steps.diff_summary.outputs.dod_drop == 'true' }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const owner = context.repo.owner;
