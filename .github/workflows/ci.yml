@@ -5,16 +5,16 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main, master]
   pull_request:
-    branches: [master]
+    branches: [main, master]
 
 jobs:
   # ─── ci-core reusable: シークレット検出 ─────────────────────────────────
   # 旧: check-secrets (インライン) → 新: reusable-secret-check.yml
   secret-check:
     name: Secret Check (reusable)
-    uses: thinkyou0714/nextjs-boilerplate/.github/workflows/reusable-secret-check.yml@main
+    uses: thinkyou0714/tyl-monorepo/.github/workflows/reusable-secret-check.yml@main
     with:
       require: false  # Phase 1: 監視モード / Phase 2 で true に昇格
       node_version: '20'
@@ -24,7 +24,7 @@ jobs:
   # 旧: dod-check (インライン) → 新: reusable-content-check.yml (B案)
   content-check:
     name: Content Check - DoD (reusable)
-    uses: thinkyou0714/nextjs-boilerplate/.github/workflows/reusable-content-check.yml@main
+    uses: thinkyou0714/tyl-monorepo/.github/workflows/reusable-content-check.yml@main
     with:
       require: false  # Phase 1: 監視モード / Phase 2 で true に昇格
       enable_dod_check: true
