@@ -117,7 +117,6 @@ function parseFrontmatter(content) {
   if (!fmMatch) return {};
   const fm = {};
   const lines = fmMatch[1].split(/\r?\n/);
-  let currentKey = null;
   for (const line of lines) {
     // Skip array items (lines starting with "  -")
     if (/^\s+-/.test(line)) continue;
@@ -126,7 +125,6 @@ function parseFrontmatter(content) {
       const key = line.substring(0, colonIdx).trim();
       const val = line.substring(colonIdx + 1).trim().replace(/^["']|["']$/g, '');
       if (key && !key.startsWith('-')) {
-        currentKey = key;
         fm[key] = val;
       }
     }
