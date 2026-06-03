@@ -1,9 +1,1 @@
-# Content changes require review
-/content/ @docs-team
-/docs/ @docs-team
-/scripts/ @docs-team
-
-# Tenant-separated sanitized staging ownership
-/obsidian-sync/10_sanitized/shared/ @docs-team
-/obsidian-sync/10_sanitized/tenant-a/ @docs-team
-/obsidian-sync/10_sanitized/tenant-b/ @docs-team
+* @thinkyou0714
