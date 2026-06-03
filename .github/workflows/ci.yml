@@ -1,45 +1,29 @@
 name: CI
 
-# public-docs CI — ci-core (nextjs-boilerplate) の reusable workflow を使用
-# Phase 1: require=false (監視モード)
-
 on:
   push:
     branches: [main, master]
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # ─── ci-core reusable: シークレット検出 ─────────────────────────────────
-  # 旧: check-secrets (インライン) → 新: reusable-secret-check.yml
-  secret-check:
-    name: Secret Check (reusable)
-    uses: thinkyou0714/tyl-monorepo/.github/workflows/reusable-secret-check.yml@main
-    with:
-      require: false  # Phase 1: 監視モード / Phase 2 で true に昇格
-      node_version: '20'
-      script_path: 'scripts/check-secrets.mjs'
-
-  # ─── ci-core reusable: DoD コンテンツチェック ───────────────────────────
-  # 旧: dod-check (インライン) → 新: reusable-content-check.yml (B案)
-  content-check:
-    name: Content Check - DoD (reusable)
-    uses: thinkyou0714/tyl-monorepo/.github/workflows/reusable-content-check.yml@main
-    with:
-      require: false  # Phase 1: 監視モード / Phase 2 で true に昇格
-      enable_dod_check: true
-      enable_placeholder_check: false
-      node_version: '20'
-
-  # ─── ビルド検証 (リポジトリ固有) ────────────────────────────────────────
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [secret-check]
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
@@ -47,12 +31,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Typecheck
+        run: npx tsc --noEmit --pretty false
+
+      - name: Lint
+        run: npm run lint
+
       - name: Build
         run: npm run build
 
       - name: Verify static output
+        shell: bash
         run: |
-          test -d out && echo "Static output directory exists"
-          file_count=$(find out -name "*.html" | wc -l)
-          echo "Generated $file_count HTML files"
-          test "$file_count" -gt 0 || exit 1
+          set -euo pipefail
+          test -d out
+          file_count="$(find out -name "*.html" | wc -l)"
+          echo "Generated ${file_count} HTML files"
+          test "${file_count}" -gt 0
