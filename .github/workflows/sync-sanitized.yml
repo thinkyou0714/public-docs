@@ -29,14 +29,20 @@ on:
         type: boolean
 
 permissions:
-  contents: write
-  issues: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   sync:
     name: Run sanitized sync
     runs-on: ubuntu-latest
     environment: sync-${{ inputs.tenant_id }}
+    permissions:
+      contents: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
 
