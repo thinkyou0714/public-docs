@@ -126,8 +126,8 @@ Obsidian Vault での運用フォルダ:
 | ステージ | ツール | トリガー |
 |---------|-------|---------|
 | ローカル機密チェック | pre-commit hook (`check-secrets.mjs`) | `git commit` |
-| CI（機密+ビルド+DoD） | GitHub Actions | push / PR to master |
-| デプロイ | Vercel | master push（自動） |
+| CI（機密+ビルド+DoD） | GitHub Actions | push / PR to main |
+| デプロイ | Vercel | main push（自動） |
 
 ```bash
 # セットアップ（hook自動インストール含む）
