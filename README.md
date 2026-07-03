@@ -146,3 +146,13 @@ npm run build
 ## 関連リポジトリ
 
 - **private-members** — テンプレJSON本体、会員向け詳細、sanitized運用Tips（別リポジトリ・非公開）
+
+## Claude Code で開発する (web / cloud 対応)
+
+このリポジトリは **Claude Code on the web** に対応しています。
+
+- 依存は `.claude/bootstrap.sh`（SessionStart）が `npm ci` で自動インストール。
+- クラウドセッションは `AGENTS.md` と `.claude/skills/`（例: `build-site`）を自動ロード。
+- テンプレートは private canonical からの build-time ミラー。編集は source 側で。
+- MCP は本リポジトリではローカル専用。詳細は
+  [`.github/docs/claude-code-web-readiness.md`](https://github.com/thinkyou0714/.github/blob/main/docs/claude-code-web-readiness.md)。
